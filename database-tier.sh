@@ -10,7 +10,6 @@ fi
 }
 ROOT
 
-
 VALIDATE(){
     if [ $1 -ne 0 ]
     then
@@ -21,22 +20,16 @@ VALIDATE(){
     fi
 }
 
-dnf list installed git 
-if [ $? -ne 0 ]
-then
-    echo "git is not installed, going to install it"
-    dnf install git -y
-    VALIDATE $? "installing git"
-else
-    echo "git is already installed nothing to do"
-fi
+for package in $@
+do
+    dnf list installed $package
+    if [ $? -ne 0 ]
+    then
+        echo "$package is not installed, going to install it"
+        dnf install $package -y
+        VALIDATE $? "$package installation"
+    else
+        echo "$package is already installed nothing to do"
+    fi
+done
 
-dnf list installed mysql -y 
-if [ $? -ne 0 ]
-then
-    echo "mysql is not installed.. going to install it.."
-    dnf install mysql -y 
-    VALIDATE $? "installing mysql"
-else
-    echo "mysql is already installed.. nothing to do"
-fi
