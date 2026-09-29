@@ -43,7 +43,7 @@ VALIDATE $? "Enabling mysql-server"
 systemctl start mysqld                &>>$LOG_FILE
 VALIDATE $? "Starting mysql-server"
 
-mysql -h  -uroot -pExpenseApp@1 -e 'show databases;'  &>>$LOG_FILE
+mysql -h mysql.muntaj.fun -uroot -pExpenseApp@1 -e 'show databases;'  &>>$LOG_FILE
 if [ $? -ne 0 ]
 then
     echo -e "$Y mysql root password is not set-up... $N setting it" | tee -a $LOG_FILE
