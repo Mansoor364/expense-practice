@@ -4,7 +4,7 @@ G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
-LOGS_FOLDER="/var/log/shell-script"
+LOGS_FOLDER="/var/log/expense"
 SCRIPT_NAME=$(echo $0 | cut -d "." -f1)
 TIME_STAMP=$(date +%Y-%m-%d-%H-%M-%S)
 LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME-$TIME_STAMP.log"
@@ -21,16 +21,6 @@ fi
 }
 ROOT
 
-USAGE(){
-    echo -e "$R USAGE :: sudo sh database.sh package1 package2..$N"  | tee -a $LOG_FILE
-    exit 1
-}
-
-if [ $# -eq 0 ]
-then
-    USAGE
-fi
-
 echo -e "$Y Script started $N executing at $(date)" | tee -a $LOG_FILE
 
 VALIDATE(){
@@ -43,16 +33,21 @@ VALIDATE(){
     fi
 }
 
-for package in $@
-do
-    dnf list installed $package   &>>$LOG_FILE
-    if [ $? -ne 0 ]
-    then
-        echo -e "$R $package is not installed, $N $Y going to install it $N"  | tee -a $LOG_FILE
-        dnf install $package -y        &>>$LOG_FILE
-        VALIDATE $? "$package installation"
-    else
-        echo -e "$G $package is already installed $N $Y nothing to do $N"  | tee -a $LOG_FILE
-    fi
-done
+dnf install mysql-server -y       &>>$LOG_FILE
+VALIDATE $? "mysql-server installation"
 
+systemctl enable mysqld           &>>$LOG_FILE
+VALIDATE $? "Enabling mysql-server"
+
+systemctl start mysqld           &>>$LOG_FILE
+VALIDATE $? "starting mysql-server"
+
+mysql -h -uroot -pExpenseApp@1     &>>$LOG_FILE
+if [ $? -ne 0 ]
+then
+    echo -e "$Y mysql root password is not setted up.. $N $R set it $N" | tee -a $LOG_FILE
+    mysql_secure_installation --set-root-pass ExpenseApp@1  &>>$LOG_FILE
+    VALIDATE $? "mysql root password setting up"
+else
+    echo -e "$Y mysql root password is already set.. $N $G SKIPP IT $N"  | tee -a $LOG_FILE
+fi
